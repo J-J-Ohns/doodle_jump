@@ -30,42 +30,66 @@ const config = {
  )
 
  function preload() {
-    this.load.image('background_img', 'assets/background.png')
+    this.load.image('background_img', 'assets/space2.png')
     this.load.image('playerSprite', 'assets/player.png')
-    this.load.image('platform', 'assets/game-tiles.png')
+    this.load.image('playerJumpSprite', 'assets/player_jump.png')
+    this.load.image('platform', 'assets/galaxy.png')
 }
  
 function create() {
-    this.add.image(0, 0, 'background_img').setOrigin(0, 0).setScrollFactor(0)
+    this.add.image(0, 0, 'background_img').setOrigin(0, 0).setScrollFactor(0);
 
-    player = this.physics.add.sprite(325, -100, 'playerSprite')
-    player.setBounce(0, 1)
-    player.setVelocityY(-400)
+    platforms = this.physics.add.staticGroup();
 
-    platforms =this.physics.add.staticGroup()
-    platforms.create(325, 0, 'platform')
+    platforms.create(320, 0, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(320, 490), -200, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(0, 170), -400, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(490, 640), -600, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(320, 640), -1200, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(170, 320), -1400, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(320, 640), -1600, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(0, 640), -1800, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(0, 640), -2000, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(Phaser.Math.Between(0, 640), -2200, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    
 
-    this.physics.add.collider(player, platforms)
+    player = this.physics.add.sprite(325, -400, 'playerSprite');
+    player.setBounce(0, 1);
+    player.setVelocityY(-450);
 
-    this.cameras.main.startFollow(player, false, 0, 1)
+    player.setSize(50, 90);
 
-    aKey = this.input.keyboard.addKey('A', true, true)
-    dKey = this.input.keyboard.addKey('D', true, true)
+    this.anims.create({
+        key: 'jump',
+        frames: [{ key: 'playerJumpSprite' }, { key: 'playerSprite' }],
+        frameRate: 10,
+        repeat: 0,
+    });
 
+    this.physics.add.collider(player, platforms, () => {
+        player.anims.play('jump', true);
+    });
+
+    this.cameras.main.startFollow(player, false, 0, 1);
+
+    aKey = this.input.keyboard.addKey('A', true, true);
+    dKey = this.input.keyboard.addKey('D', true, true);
 }
- 
+
 
 function update() {
     if (aKey.isDown && !dKey.isDown) {
-        player.x > 32 ? player.setVelocityX(-300) : player.setVelocityX(0)
+        player.x > 32 ? player.setVelocityX(-300) : player.setVelocityX(0);
     }
-    if (dKey.isDown && !aKey.isDown)
-        player.x < 608 ? player.setVelocityX(300) : player.setVelocityX(0)
+    if (dKey.isDown && !aKey.isDown) {
+        player.x < 608 ? player.setVelocityX(300) : player.setVelocityX(0);
     }
     if (!aKey.isDown && !dKey.isDown) {
-        player.setVelocityX(0)
+        player.setVelocityX(0);
     }
 }
+
+
 
 // function create() {
 //     cursor = this.input.keyboard.createCursorKeys()
