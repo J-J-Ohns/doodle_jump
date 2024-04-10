@@ -39,9 +39,9 @@ function create() {
     this.add.image(0, 0, 'background_img').setOrigin(0, 0).setScrollFactor(0)
 
     player = this.physics.add.sprite(325, -100, 'playerSprite')
-    player.setBounce(0, 1)
+    player.setBounce(0,1)
     player.setVelocityY(-400)
-
+  
     platforms =this.physics.add.staticGroup()
     platforms.create(325, 0, 'platform')
 
@@ -51,7 +51,6 @@ function create() {
 
     aKey = this.input.keyboard.addKey('A', true, true)
     dKey = this.input.keyboard.addKey('D', true, true)
-
 }
  
 
@@ -65,22 +64,7 @@ function update() {
     if (!aKey.isDown && !dKey.isDown) {
         player.setVelocityX(0)
     }
-}
 
-// function create() {
-//     cursor = this.input.keyboard.createCursorKeys()
-// }
 
-// function update() {
-//     if (cursor.left.isDown && !cursor.right.isDown) {
-//         player.x > 32 ? player.setVelocityX(-300) : player.setVelocityX(0)
-//     }
-//     if (cursor.right.isDown && !cursor.left.isDown) {
-//         player.x < 608 ? player.setVelocityX(300) : player.setVelocityX(0)
-//     }
-//     if (!cursor.left.isDown && !cursor.right.isDown) {
-//         player.setVelocityX(0)
-//     }
-// }
  
  
