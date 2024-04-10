@@ -41,21 +41,27 @@ function create() {
 
     platforms = this.physics.add.staticGroup();
 
-    platforms.create(320, 0, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(320, 490), -200, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(0, 170), -400, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(490, 640), -600, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(320, 640), -1200, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(170, 320), -1400, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(320, 640), -1600, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(0, 640), -1800, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(0, 640), -2000, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
-    platforms.create(Phaser.Math.Between(0, 640), -2200, 'platform').setSize(150, 1).setOffset(150 - 150 / 2, 60);
+    platforms.create(320, 0, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(490, 648), -200, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(220, 320), -400, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(490, 540), -600, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(320, 640), -800, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(170, 320), -1000, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(320, 640), -1200, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(0, 640), -1400, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(0, 640), -1600, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
+    platforms.create(Phaser.Math.Between(0, 640), -1800, 'platform').setScale(0.5).setSize(75, 1).setOffset(120, 60);
     
+    //platforms.children.iterate(function (platform) {
+    //    if (platform.y > player.y && player.body.center.distance(platform.body.center) > 700) {
+    //        platform.x = Phaser.Math.Between(0, 640)
+    //        platform.y = platform.y - Phaser.Math.Between(1150, 1200)
+    //    }
+    //})
 
     player = this.physics.add.sprite(325, -400, 'playerSprite');
     player.setBounce(0, 1);
-    player.setVelocityY(-450);
+    player.setVelocityY(-300);
 
     player.setSize(50, 90);
 
@@ -68,6 +74,7 @@ function create() {
 
     this.physics.add.collider(player, platforms, () => {
         player.anims.play('jump', true);
+        player.setVelocity(-400)
     });
 
     this.cameras.main.startFollow(player, false, 0, 1);
