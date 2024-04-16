@@ -1,7 +1,7 @@
 // Define the gamme configuration
 const config = {
     type: Phaser.AUTO,
-    width: 620,
+    width: 640,
     height: window.innerHeight,
     physics: {
         default: 'arcade',
@@ -16,7 +16,15 @@ const config = {
         update: update,
     },
 }
-// Create the game
+// Event listener to Resize the game
+window.addEventListener(
+    'resize',
+    function () {
+        game.scale.resize(config.width, window.innerHeight)
+    },
+    false,
+)
+// element that will contain the game
 const game = new Phaser.Game(config)
 
 // Declare global variables
@@ -26,19 +34,11 @@ let aKey
 let dKey
 let gameOverDistance = 0
 let enemies
+let gameOver = false
 let spacebar
+let ball
 let score = 0
 let scoreText
-let gameOver = false
-
-// Event listener to Resize the game
-window.addEventListener(
-    'resize',
-    function () {
-        game.scale.resize(config.width, window.innerHeight)
-    },
-    false,
-)
 // Preload the game assets
 function preload() {
     this.load.image('background_img', 'assets/space3.png')
@@ -73,6 +73,21 @@ function create() {
         repeat: 0,
     })
 
+    
+    this.anims.create({
+        key: 'sparkle',
+        frames:'ball',
+        frameRate: 20,
+        repeat: -1
+    })
+    
+    this.anims.create({
+        key: 'shoot',
+        frames: [{ key: 'player_up' }, { key: 'playerSprite' }],
+        frameRate: 10,
+        repeat: 0,       
+    })
+
     this.anims.create({
         key: 'enemy_fly',
         frames: 'enemyAnims',
@@ -81,33 +96,14 @@ function create() {
         yoyo: true
     })
 
-    this.anims.create({
-        key: 'sparkle',
-        frames:'ball',
-        frameRate: 20,
-        repeat: -1
-    })
-
-    this.anims.create({
-        key: 'shoot',
-        frames: [{ key: 'player_up' }, { key: 'playerSprite' }],
-        frameRate: 10,
-        repeat: 0,
-
-    })
-
-    // Add platforms
-    createPlatforms(this.physics)
     // Add the player
     createPlayer(this.physics)
-
+    // Add platforms
+    createPlatforms(this.physics)
     // Add enemies
-    createEnemy(this.physics)
-
+    createEnemies(this.physics)
     // Add projectiles
     createBall(this.physics)
-
-
     // Add collisions to player when he jumps up
     this.physics.add.collider(player, platforms, (playerObj, platformObj) => {
         if (platformObj.body.touching.up && playerObj.body.touching.down) {
@@ -130,15 +126,15 @@ function create() {
 
     // player collides with enemy
     this.physics.add.collider(player, enemies, (_, enemy) => {
-        enemy.anims.stop()
         this.physics.pause()
         gameOver = true
+        enemy.anims.stop()
     })
 
     // enemy collides with ball
     this.physics.add.collider(ball, enemies, (ball, enemy) => {
-        ball.disableBody(true, true)
         enemy.disableBody(true, true)
+        ball.disableBody(true, true)
         score += 50
         scoreText.setText(`score: ${score}`)
     })
@@ -149,17 +145,25 @@ function create() {
 }
 // Update elements in the game
 function update() {
-    if (gameOver) return
-    
     checkMovement()
-    refactorePlatforms()
-    refactoreEnemy()
-    checkGameOver(this.physics)
-    checkShoot()
     checkBall()
+    checkShoot()
+    refactorEnemies()
+    refactorPlatforms()
+    checkGameOver(this.physics)
     updateScore()
+    if (gameOver) return
 }
 
+function createPlayer(physics) {
+    // Create the player
+    player = physics.add.sprite(325, -100, 'playerSprite')
+    player.setBounce(0, 1)
+    player.setVelocityY(-400)
+    player.body.setSize(64, 90)
+    player.body.setOffset(32, 30)
+    player.setDepth(10)
+};
 function createPlatforms(physics) {
     // Create a group for platforms
     platforms = physics.add.staticGroup()
@@ -172,6 +176,11 @@ function createPlatforms(physics) {
     platforms.create(Phaser.Math.Between(0, 640), -1000, 'platform').setSize(75, 1)
     platforms.create(Phaser.Math.Between(0, 640), -1200, 'platform').setSize(75, 1)
     platforms.create(Phaser.Math.Between(0, 640), -1400, 'platform').setSize(75, 1)
+    platforms.create(Phaser.Math.Between(0, 640), -1600, 'platform').setSize(75, 1)
+    platforms.create(Phaser.Math.Between(0, 640), -1800, 'platform').setSize(75, 1)
+    platforms.create(Phaser.Math.Between(0, 640), -2000, 'platform').setSize(75, 1)
+    platforms.create(Phaser.Math.Between(0, 640), -2200, 'platform').setSize(75, 1)
+    platforms.create(Phaser.Math.Between(0, 640), -2400, 'platform').setSize(75, 1)
     
     // Add collisions to platforms
     platforms.children.iterate(function (platform) {
@@ -179,103 +188,22 @@ function createPlatforms(physics) {
         platform.body.checkCollision.left = false
         platform.body.checkCollision.right = false
     })
-};
-function createPlayer(physics) {
-    // Create the player
-    player = physics.add.sprite(325, -100, 'playerSprite')
-    player.setBounce(0, 1)
-    player.setVelocityY(-400)
-    player.body.setSize(64, 90)
-    player.body.setOffset(32, 30)
-    player.setDepth(10)
-};
-
-function createEnemy(physics) {
+}
+function createEnemies(physics) {
     // Create a group for enemies
-    enemies = physics.add.group();
-    
+    enemies = physics.add.group()
     // Create a new enemy and add it to the enemies group
-    enemies.create(Phaser.Math.Between(0, 640), Phaser.Math.Between(-950, -1300), 'enemy');
-    
+    enemies.create(Phaser.Math.Between(0, 640), Phaser.Math.Between(-950, -1300), 'enemy')    
     // Iterate over each enemy and set its properties
-    enemies.children.iterate((enemy) => {
-        // Disable gravity for enemies
-        enemy.body.setAllowGravity(false);
-        
+    enemies.children.iterate(function (enemy) {
         // Set the size of the enemy
         enemy.body.setSize(66, 66);
-        
+        // Disable gravity for enemies
+        enemy.body.setAllowGravity(false);
         // Play the enemy_fly animation
         enemy.anims.play('enemy_fly');
-    });
-};
-
-function createKeys(keyboard) {
-        // Add controls
-        aKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A, true, true)
-        dKey = keyboard.addKey('D', true, true)
-        spacebar = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE, true, true)
-};
-// reposition enemies
-function refactoreEnemy() {
-    enemies.children.iterate(function (enemy) {
-        if (enemy.y > player.y && player.body.center.distance(enemy.body.center) > 700) {
-            enemy.enableBody(true, enemy.x, enemy.y, true, true);
-            enemy.x = Phaser.Math.Between(0, 640)
-            enemy.y = enemy.y - Phaser.Math.Between(1600, 1800)
-            enemy.refreshBody()
-        }
     })
-};
-
-function checkMovement() {
-    if (aKey.isDown && !dKey.isDown) {
-        player.setVelocityX(-300)
-        player.flipX = true
-        if (player.x < 15) player.x = 615
-      }
-if (dKey.isDown && !aKey.isDown) {        
-        player.setVelocityX(300)
-        player.flipX = false
-        if (player.x > 615) player.x = 15
-      }
-if (!aKey.isDown && !dKey.isDown) {
-    player.setVelocityX(0)
 }
-};
-
-// reposition platforms
-function refactorePlatforms() {
-    let minY = 0
-    platforms.children.iterate(function (platform) {
-        if (platform.y < minY) minY = platform.y
-    })
-    platforms.children.iterate(function (platform) {
-        if (platform.y > player.y && player.body.center.distance(platform.body.center) > 700) {
-            platform.x = Phaser.Math.Between(0, 640)
-            platform.y = minY - 200
-            platform.setSize(75, 1)
-            platform.refreshBody()
-        }
-    })
-};
-
-function checkGameOver(physics) {
-    // Game over
-    if (player.body.y > gameOverDistance) {
-        physics.pause()
-        gameOver = true
-    } else if (player.body.y * -1 - gameOverDistance * -1 > 600) {
-        gameOverDistance = player.body.y + 600
-    }
-};
-function checkBall() {
-    // Check if the ball sprite is active and if it has passed a certain height
-    if (ball.active && ball.startPosition - ball.y > config.height) {
-        ball.disableBody(true, true)
-    }
-};
-
 function createBall(physics) {
     ball= physics.add.sprite(0, 0, 'ball')
     ball.active = false
@@ -283,22 +211,98 @@ function createBall(physics) {
     ball.setSize(30,30)
     ball.anims.play('sparkle')
 };
-
-function checkShoot() {
-  if (spacebar.isDown && !ball.active) {
-    ball.x = player.x
-    ball.y = player.y -45
-    player.anims.play('shoot') 
-    ball.enableBody(true, ball.x, ball.y, true, true)
-    ball.setVelocityY(-800)
-    ball.startPosition = ball.y
-  }
- 
+function createKeys(keyboard) {
+        // Add controls
+        aKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A, true, true)
+        dKey = keyboard.addKey('D', true, true)
+        spacebar = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE, true, true)
 };
+function checkMovement() {
+    if (aKey.isDown && !dKey.isDown) {
+        player.setVelocityX(-300)
+        player.flipX = true
+        if (player.x < 15) {
+            player.x = 615
+    }
+}
+    if (dKey.isDown && !aKey.isDown) {        
+        player.setVelocityX(300)
+        player.flipX = false
+        if (player.x > 615) {
+            player.x = 15
+        }
+    }
+    if (!aKey.isDown && !dKey.isDown) {
+        player.setVelocityX(0)
+    }
+}
+
+function checkBall() {
+    // Check if the ball sprite is active and if it has passed a certain height
+    if (ball.active && ball.startPosition - ball.y > config.height) {
+        ball.disableBody(true, true)
+    }
+}
+function checkShoot() {
+    if (spacebar.isDown && !ball.active) {
+        ball.x = player.x
+        ball.y = player.y -45
+        player.anims.play('shoot') 
+        ball.enableBody(true, ball.x, ball.y, true, true)
+        ball.setVelocityY(-800)
+        ball.startPosition = ball.y
+    }
+    
+}
+// reposition platforms
+function refactorPlatforms() {
+    let minY = 0;
+    let newPlatforms = [];
+
+    platforms.children.iterate(function (platform) {
+        if (platform.y < minY) minY = platform.y;
+    });
+
+    platforms.children.iterate(function (platform) {
+        if (platform.y > player.y && player.body.center.distance(platform.body.center) > 700) {
+            let newPlatform = platforms.create(Phaser.Math.Between(0, 640), minY - 200, 'platform').setSize(75, 1);
+            newPlatforms.push(newPlatform);
+        }
+    });
+
+    newPlatforms.forEach(function (platform) {
+        platform.refreshBody();
+    });
+}
+// reposition enemies
+function refactorEnemies() {
+    enemies.children.iterate(function (enemy) {
+        if (enemy.y > player.y && player.body.center.distance(enemy.body.center) > 700) {
+            enemy.x = Phaser.Math.Between(0, 640)
+            enemy.y = enemy.y - Phaser.Math.Between(1000, 800)
+            enemy.enableBody(true, enemy.x, enemy.y, true, true)
+        }
+    })
+};
+function checkGameOver(physics) {
+    // Game over
+    if (player.body.y > gameOverDistance) {
+        physics.pause()
+        gameOver = true
+        scoreText.setText('GAME OVER! \nScore: ' + score);
+        scoreText.setOrigin(0.5, 0.5); // Zentrieren
+        scoreText.setStyle({ font: 'bold 32px Helvetica', align: 'center', color: '#fe019a' });
+        scoreText.setShadow(3, 3, 'rgba(144, 255, 59, 0.8)', 10);
+        scoreText.setX(config.width / 2); // Horizontal in die Mitte setzen
+        scoreText.setY(config.height / 2 - 150); // Horizontal in die Mitte setzen
+    } else if (player.body.y * -1 - gameOverDistance * -1 > 600) {
+        gameOverDistance = player.body.y + 600
+    }
+}
 
 function updateScore() {
     if (player.y * -1 > score) {
         score = Math.round(player.y * -1)
         scoreText.setText(`score: ${score}`)
     }
-};
+}   
